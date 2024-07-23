@@ -1,0 +1,9 @@
+spring:
+  profiles:
+    active: default-runner
+    # active: tests
+  application:
+    name: telegram
+  telegram:
+    BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    CHAT_ID: ${TELEGRAM_CHAT_ID}
