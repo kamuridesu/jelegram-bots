@@ -9,8 +9,7 @@ import lombok.Value;
 @RequiredArgsConstructor
 public class MessageDTO {
 
-    private final Integer offset;
+  private final Integer offset;
 
-    private final Integer timeout = 10;
-    
+  private final Integer timeout = 10;
 }
