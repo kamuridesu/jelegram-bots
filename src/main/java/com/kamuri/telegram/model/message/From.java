@@ -1,7 +1,6 @@
 package com.kamuri.telegram.model.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,15 +11,14 @@ import lombok.Value;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class From {
-    
-    private final long id;
 
-    @JsonProperty("is_bot")
-    private final boolean isBot;
+  private final long id;
 
-    @JsonProperty("first_name")
-    private final String firstName;
+  @JsonProperty("is_bot")
+  private final boolean isBot;
 
-    private final String username;
-    
+  @JsonProperty("first_name")
+  private final String firstName;
+
+  private final String username;
 }

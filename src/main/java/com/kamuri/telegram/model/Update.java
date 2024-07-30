@@ -1,9 +1,7 @@
 package com.kamuri.telegram.model;
 
-import java.util.List;
-
 import com.kamuri.telegram.model.update.Result;
-
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
@@ -16,9 +14,7 @@ import lombok.Value;
 @RequiredArgsConstructor
 public class Update {
 
-    @NonNull
-    private final Boolean ok;
+  @NonNull private final Boolean ok;
 
-    private final List<Result> result;
-
+  private final List<Result> result;
 }
