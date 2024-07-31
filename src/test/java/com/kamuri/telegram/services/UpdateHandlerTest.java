@@ -9,10 +9,9 @@ import com.kamuri.telegram.model.Update;
 import com.kamuri.telegram.model.message.Message;
 import com.kamuri.telegram.model.update.CallbackQuery;
 import com.kamuri.telegram.model.update.Result;
-import com.kamuri.telegram.services.impl.UpdateHandler;
+import com.kamuri.telegram.services.impl.UpdateHandlerImpl;
 import java.util.List;
 import java.util.function.Consumer;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,14 +19,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@RequiredArgsConstructor
 public class UpdateHandlerTest {
 
   @Mock private Consumer<CallbackQuery> callbackConsumer;
 
   @Mock private Consumer<Message> messageConsumer;
 
-  @InjectMocks private UpdateHandler updateHandler;
+  @InjectMocks private UpdateHandlerImpl updateHandler;
 
   @Test
   void shouldRegisterCallbackHandler() {
