@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 
-public interface ITelegramBot {
+public interface TelegramBot {
 
   /**
    * Send message to chat by using the data inside the SendMessageDTO class
@@ -69,7 +69,7 @@ public interface ITelegramBot {
 
   /**
    * Starts long polling to fetch updates from the api and handle those updates. By default it uses
-   * {@link IUpdateHandler}.
+   * {@link UpdateHandler}.
    *
    * @param interval Integer to sleep the thread while waits for updates to avoid spamming on the
    *     Telegram API.

@@ -13,10 +13,9 @@ import com.kamuri.telegram.model.Update;
 import com.kamuri.telegram.model.dto.EditMessageDTO;
 import com.kamuri.telegram.model.dto.SendMessageDTO;
 import com.kamuri.telegram.model.update.Result;
-import com.kamuri.telegram.services.impl.TelegramBot;
-import com.kamuri.telegram.services.impl.UpdateHandler;
+import com.kamuri.telegram.services.impl.TelegramBotImpl;
+import com.kamuri.telegram.services.impl.UpdateHandlerImpl;
 import java.util.Arrays;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,14 +24,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 @ExtendWith(MockitoExtension.class)
-@RequiredArgsConstructor
 public class TelegramBotTest {
 
   @Mock private FeignConfig telegramClient;
 
-  @Mock private UpdateHandler updateHandler;
+  @Mock private UpdateHandlerImpl updateHandler;
 
-  @InjectMocks private TelegramBot telegramBot;
+  @InjectMocks private TelegramBotImpl telegramBot;
 
   @Test
   void shouldRegisterCallback() {
@@ -62,8 +60,10 @@ public class TelegramBotTest {
 
   @Test
   void shouldGetMessageUpdateWithNullResult() {
-    var expectedUpdate = new Update(true, null);
+    var expectedUpdate = Update.builder().ok(true).result(null).build();
+
     when(telegramClient.getUpdate(any())).thenReturn(expectedUpdate);
+
     assertEquals(expectedUpdate, telegramBot.getUpdate());
   }
 

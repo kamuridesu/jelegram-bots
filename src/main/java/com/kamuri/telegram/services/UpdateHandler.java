@@ -5,7 +5,7 @@ import com.kamuri.telegram.model.message.Message;
 import com.kamuri.telegram.model.update.CallbackQuery;
 import java.util.function.Consumer;
 
-public interface IUpdateHandler {
+public interface UpdateHandler {
 
   /**
    * Register new message handler to handle messages that match `expectedData`.
@@ -47,5 +47,5 @@ public interface IUpdateHandler {
    * @version 0.0.1
    * @since 0.0.1
    */
-  Void handle(Update update);
+  void handle(Update update);
 }

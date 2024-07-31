@@ -9,7 +9,8 @@ import com.kamuri.telegram.model.dto.MessageDTO;
 import com.kamuri.telegram.model.dto.SendMessageDTO;
 import com.kamuri.telegram.model.message.Message;
 import com.kamuri.telegram.model.update.CallbackQuery;
-import com.kamuri.telegram.services.ITelegramBot;
+import com.kamuri.telegram.services.TelegramBot;
+import com.kamuri.telegram.services.UpdateHandler;
 import java.util.Optional;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TelegramBot implements ITelegramBot {
+public class TelegramBotImpl implements TelegramBot {
 
   private final FeignConfig telegramClient;
   private final UpdateHandler updateHandler;

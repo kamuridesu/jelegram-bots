@@ -1,14 +1,14 @@
 package com.kamuri.telegram.model;
 
 import java.util.function.Consumer;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 @Value
 @Builder(toBuilder = true)
-@RequiredArgsConstructor
+@AllArgsConstructor(staticName = "of")
 public class Handler<T> {
 
   @NonNull String identifier;

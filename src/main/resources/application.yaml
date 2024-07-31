@@ -1,7 +1,6 @@
 spring:
   profiles:
     active: default-runner
-    # active: tests
   application:
     name: telegram
   telegram:

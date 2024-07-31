@@ -4,8 +4,9 @@ import com.kamuri.telegram.model.Handler;
 import com.kamuri.telegram.model.Update;
 import com.kamuri.telegram.model.message.Message;
 import com.kamuri.telegram.model.update.CallbackQuery;
-import com.kamuri.telegram.services.IUpdateHandler;
+import com.kamuri.telegram.services.UpdateHandler;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -19,12 +20,17 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Getter
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class UpdateHandler implements IUpdateHandler {
+public class UpdateHandlerImpl implements UpdateHandler {
 
-  private List<Handler> callbackHandlers = new ArrayList<>();
-  private List<Handler> messageHandlers = new ArrayList<>();
+  private List<Handler<CallbackQuery>> callbackHandlers = new ArrayList<>();
+  private List<Handler<Message>> messageHandlers = new ArrayList<>();
   private Set<CompletableFuture<Object>> runningTasks = new HashSet<>();
+
+  private Comparator<? super Handler<?>> comparator =
+      (x, y) ->
+          x.getIdentifier().equals("*") && !y.getIdentifier().equals("*")
+              ? 1
+              : !x.getIdentifier().equals("*") && y.getIdentifier().equals("*") ? -1 : 0;
 
   /**
    * * Handles Callback updates, filtering the registered callbacks and calling the matching
@@ -37,11 +43,7 @@ public class UpdateHandler implements IUpdateHandler {
    */
   private void handleCallbackQuery(CallbackQuery cq) {
     callbackHandlers.stream()
-        .sorted(
-            (x, y) ->
-                x.getIdentifier().equals("*") && !y.getIdentifier().equals("*")
-                    ? 1
-                    : !x.getIdentifier().equals("*") && y.getIdentifier().equals("*") ? -1 : 0)
+        .sorted(comparator)
         .filter(s -> cq.getData().equals(s.getIdentifier()) || s.getIdentifier().equals("*"))
         .findFirst()
         .ifPresent(s -> s.getCallback().accept(cq));
@@ -58,11 +60,7 @@ public class UpdateHandler implements IUpdateHandler {
    */
   private void handleMessage(Message message) {
     messageHandlers.stream()
-        .sorted(
-            (x, y) ->
-                x.getIdentifier().equals("*") && !y.getIdentifier().equals("*")
-                    ? 1
-                    : !x.getIdentifier().equals("*") && y.getIdentifier().equals("*") ? -1 : 0)
+        .sorted(comparator)
         .filter(
             s -> message.getText().startsWith(s.getIdentifier()) || s.getIdentifier().equals("*"))
         .findFirst()
@@ -70,34 +68,31 @@ public class UpdateHandler implements IUpdateHandler {
   }
 
   @Override
-  public Void handle(Update update) {
-    var updateResult = update.getResult();
-    if (updateResult.isEmpty()) {
-      return null;
-    }
-    updateResult.forEach(
-        result -> {
-          Optional.ofNullable(result.getCallbackQuery())
-              .ifPresent(
-                  cq ->
-                      CompletableFuture.supplyAsync(
-                              () -> {
-                                handleCallbackQuery(cq);
-                                return null;
-                              })
-                          .thenAccept(task -> runningTasks.remove(task)));
+  public void handle(Update update) {
+    update
+        .getResult()
+        .forEach(
+            result -> {
+              Optional.ofNullable(result.getCallbackQuery())
+                  .ifPresent(
+                      cq ->
+                          CompletableFuture.supplyAsync(
+                                  () -> {
+                                    handleCallbackQuery(cq);
+                                    return null;
+                                  })
+                              .thenAccept(task -> runningTasks.remove(task)));
 
-          Optional.ofNullable(result.getMessage())
-              .ifPresent(
-                  msg ->
-                      CompletableFuture.supplyAsync(
-                              () -> {
-                                handleMessage(msg);
-                                return null;
-                              })
-                          .thenAccept(task -> runningTasks.remove(task)));
-        });
-    return null;
+              Optional.ofNullable(result.getMessage())
+                  .ifPresent(
+                      msg ->
+                          CompletableFuture.supplyAsync(
+                                  () -> {
+                                    handleMessage(msg);
+                                    return null;
+                                  })
+                              .thenAccept(task -> runningTasks.remove(task)));
+            });
   }
 
   @Override
@@ -106,7 +101,8 @@ public class UpdateHandler implements IUpdateHandler {
       System.err.println("Callback handler already exists!");
       return;
     }
-    callbackHandlers.add(new Handler(expectedData, callback));
+
+    callbackHandlers.add(Handler.of(expectedData, callback));
   }
 
   @Override
@@ -120,6 +116,7 @@ public class UpdateHandler implements IUpdateHandler {
       System.err.println("Message handler already exists!");
       return;
     }
-    messageHandlers.add(new Handler(pattern, callback));
+
+    messageHandlers.add(Handler.of(pattern, callback));
   }
 }

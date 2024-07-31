@@ -1,5 +1,7 @@
 package com.kamuri.telegram.util;
 
+import static com.kamuri.telegram.util.StringUtils.isEmptyOrNull;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -28,6 +30,6 @@ public class MessageUtils {
    * @since 0.0.1
    */
   public String maskToken(String message) {
-    return token == "" || token == null ? message : message.replace(token, "TOKEN");
+    return isEmptyOrNull(message) ? message : message.replace(token, "TOKEN");
   }
 }
