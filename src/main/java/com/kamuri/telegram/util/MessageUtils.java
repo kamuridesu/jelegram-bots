@@ -2,9 +2,7 @@ package com.kamuri.telegram.util;
 
 import static com.kamuri.telegram.util.StringUtils.isEmptyOrNull;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import lombok.experimental.UtilityClass;
 
 /**
  * Util methods for messages.
@@ -13,12 +11,10 @@ import org.springframework.stereotype.Component;
  * @version 0.0.1
  * @since 0.0.1
  */
-@Component
-@RequiredArgsConstructor
+@UtilityClass
 public class MessageUtils {
 
-  @Value("${spring.telegram.BOT_TOKEN}")
-  private String token;
+  private static final String TOKEN_MASK = "TOKEN";
 
   /**
    * Mask token in strings for output
@@ -29,7 +25,7 @@ public class MessageUtils {
    * @version 0.0.1
    * @since 0.0.1
    */
-  public String maskToken(String message) {
-    return isEmptyOrNull(message) ? message : message.replace(token, "TOKEN");
+  public static String maskToken(String message, String token) {
+    return isEmptyOrNull(message) ? message : message.replace(token, TOKEN_MASK);
   }
 }

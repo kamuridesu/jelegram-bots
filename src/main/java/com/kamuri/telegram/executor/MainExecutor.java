@@ -13,21 +13,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 @Service
-@Component
-@Profile("default-runner")
 @RequiredArgsConstructor
+@Profile("default-runner")
 public class MainExecutor implements CommandLineRunner {
 
-  private final TelegramBot telegramBot;
-
-  private final MessageUtils messageUtils;
+  @Value("${spring.telegram.BOT_TOKEN}")
+  private String TOKEN;
 
   @Value("${spring.telegram.CHAT_ID}")
-  private String chatId;
+  private String CHAT_ID;
+
+  private final TelegramBot telegramBot;
 
   @Override
   public void run(String... args) throws InterruptedException {
@@ -37,7 +36,7 @@ public class MainExecutor implements CommandLineRunner {
     };
 
     var markup = new InlineKeyboardMarkupDTO(button);
-    var message = new SendMessageDTO(chatId, "test", markup);
+    var message = new SendMessageDTO(CHAT_ID, "test", markup);
     var response = telegramBot.sendMessage(message);
 
     telegramBot.registerCallbackHandler("*", s -> handleCQ(s, response));
@@ -46,7 +45,7 @@ public class MainExecutor implements CommandLineRunner {
         s -> {
           System.out.println(s.getText());
           telegramBot.sendMessage(
-              new SendMessageDTO(chatId, "Hello " + s.getFrom().getFirstName(), markup));
+              new SendMessageDTO(CHAT_ID, "Hello " + s.getFrom().getFirstName(), markup));
         });
 
     telegramBot.registerMessageHandler(s -> System.out.println(s));
@@ -68,13 +67,13 @@ public class MainExecutor implements CommandLineRunner {
       if (callbackQuery.getData().equals("exit")) System.exit(0);
 
       if (callbackQuery.getData().equals("edit")) {
-        var msg = new EditMessageDTO(chatId, response.getResult().getMessageId(), "ababa");
+        var msg = new EditMessageDTO(CHAT_ID, response.getResult().getMessageId(), "ababa");
         telegramBot.editMessage(msg);
       }
 
     } catch (feign.FeignException.BadRequest badRequest) {
       System.out.println(
-          "Fail to answer callback: " + messageUtils.maskToken(badRequest.getMessage()));
+          "Fail to answer callback: " + MessageUtils.maskToken(badRequest.getMessage(), TOKEN));
     }
   }
 }
