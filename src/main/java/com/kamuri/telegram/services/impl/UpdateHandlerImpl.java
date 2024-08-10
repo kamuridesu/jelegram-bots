@@ -7,10 +7,8 @@ import com.kamuri.telegram.model.update.CallbackQuery;
 import com.kamuri.telegram.services.UpdateHandler;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import lombok.Getter;
@@ -24,7 +22,6 @@ public class UpdateHandlerImpl implements UpdateHandler {
 
   private List<Handler<CallbackQuery>> callbackHandlers = new ArrayList<>();
   private List<Handler<Message>> messageHandlers = new ArrayList<>();
-  private Set<CompletableFuture<? super Handler<?>>> runningTasks = new HashSet<>();
 
   private Comparator<? super Handler<?>> comparator =
       (x, y) ->
