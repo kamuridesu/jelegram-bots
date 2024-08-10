@@ -1,6 +1,6 @@
 package com.kamuri.telegram.services.impl;
 
-import com.kamuri.telegram.config.FeignConfig;
+import com.kamuri.telegram.config.TelegramClient;
 import com.kamuri.telegram.model.MessageUpdate;
 import com.kamuri.telegram.model.Update;
 import com.kamuri.telegram.model.dto.AnswerCallbackQueryDTO;
@@ -22,10 +22,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TelegramBotImpl implements TelegramBot {
 
-  private final FeignConfig telegramClient;
+  private final TelegramClient telegramClient;
+
   private final UpdateHandler updateHandler;
 
-  private Integer lastUpdateID = 0;
+  private Integer lastUpdateId = 0;
 
   @Override
   public MessageUpdate editMessage(EditMessageDTO editMessageDTO) {
@@ -45,7 +46,7 @@ public class TelegramBotImpl implements TelegramBot {
   @Override
   public Update getUpdate(@Nullable MessageDTO messageDTO) {
     return telegramClient.getUpdate(
-        Optional.ofNullable(messageDTO).orElseGet(() -> new MessageDTO(lastUpdateID)));
+        Optional.ofNullable(messageDTO).orElseGet(() -> new MessageDTO(lastUpdateId)));
   }
 
   @Override
@@ -70,10 +71,11 @@ public class TelegramBotImpl implements TelegramBot {
   public void process(Integer interval, @Nullable Consumer<Update> callback) {
     var lastUpdate = getUpdate();
     var lastResult = lastUpdate.getResult();
-    if (!lastResult.isEmpty()) {
-      lastUpdateID = lastResult.get(lastResult.size() - 1).getUpdateId() + 1;
-    }
-    Optional.ofNullable(callback).ifPresent(s -> s.accept(lastUpdate));
+
+    if (!lastResult.isEmpty())
+      lastUpdateId = lastResult.get(lastResult.size() - 1).getUpdateId() + 1;
+
+    Optional.ofNullable(callback).ifPresent(c -> c.accept(lastUpdate));
   }
 
   @Override

@@ -7,7 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.kamuri.telegram.config.FeignConfig;
+import com.kamuri.telegram.config.TelegramClient;
 import com.kamuri.telegram.model.MessageUpdate;
 import com.kamuri.telegram.model.Update;
 import com.kamuri.telegram.model.dto.EditMessageDTO;
@@ -26,7 +26,7 @@ import org.springframework.http.ResponseEntity;
 @ExtendWith(MockitoExtension.class)
 public class TelegramBotTest {
 
-  @Mock private FeignConfig telegramClient;
+  @Mock private TelegramClient telegramClient;
 
   @Mock private UpdateHandlerImpl updateHandler;
 
