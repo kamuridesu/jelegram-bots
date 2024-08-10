@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 @FeignClient(value = "client", url = "https://api.telegram.org")
 @Headers("Accept: application/json")
-public interface FeignConfig {
+public interface TelegramClient {
 
   @RequestMapping(
       method = RequestMethod.GET,

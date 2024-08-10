@@ -24,13 +24,52 @@ public class UpdateHandlerImpl implements UpdateHandler {
 
   private List<Handler<CallbackQuery>> callbackHandlers = new ArrayList<>();
   private List<Handler<Message>> messageHandlers = new ArrayList<>();
-  private Set<CompletableFuture<Object>> runningTasks = new HashSet<>();
+  private Set<CompletableFuture<? super Handler<?>>> runningTasks = new HashSet<>();
 
   private Comparator<? super Handler<?>> comparator =
       (x, y) ->
           x.getIdentifier().equals("*") && !y.getIdentifier().equals("*")
               ? 1
               : !x.getIdentifier().equals("*") && y.getIdentifier().equals("*") ? -1 : 0;
+
+  @Override
+  public void registerCallbackHandler(String expectedData, Consumer<CallbackQuery> callback) {
+    if (callbackHandlers.stream().anyMatch(s -> s.getIdentifier().equals(expectedData))) {
+      System.err.println("Callback handler already exists!");
+      return;
+    }
+
+    callbackHandlers.add(Handler.of(expectedData, callback));
+  }
+
+  @Override
+  public void registerMessageHandler(Consumer<Message> callback) {
+    registerMessageHandler("*", callback);
+  }
+
+  @Override
+  public void registerMessageHandler(String pattern, Consumer<Message> callback) {
+    if (messageHandlers.stream().anyMatch(s -> s.getIdentifier().equals(pattern))) {
+      System.err.println("Message handler already exists!");
+      return;
+    }
+
+    messageHandlers.add(Handler.of(pattern, callback));
+  }
+
+  @Override
+  public void handle(Update update) {
+    update
+        .getResult()
+        .forEach(
+            result -> {
+              Optional.ofNullable(result.getCallbackQuery())
+                  .ifPresent(cq -> CompletableFuture.runAsync(() -> handleCallbackQuery(cq)));
+
+              Optional.ofNullable(result.getMessage())
+                  .ifPresent(msg -> CompletableFuture.runAsync(() -> handleMessage(msg)));
+            });
+  }
 
   /**
    * * Handles Callback updates, filtering the registered callbacks and calling the matching
@@ -65,58 +104,5 @@ public class UpdateHandlerImpl implements UpdateHandler {
             s -> message.getText().startsWith(s.getIdentifier()) || s.getIdentifier().equals("*"))
         .findFirst()
         .ifPresent(s -> s.getCallback().accept(message));
-  }
-
-  @Override
-  public void handle(Update update) {
-    update
-        .getResult()
-        .forEach(
-            result -> {
-              Optional.ofNullable(result.getCallbackQuery())
-                  .ifPresent(
-                      cq ->
-                          CompletableFuture.supplyAsync(
-                                  () -> {
-                                    handleCallbackQuery(cq);
-                                    return null;
-                                  })
-                              .thenAccept(task -> runningTasks.remove(task)));
-
-              Optional.ofNullable(result.getMessage())
-                  .ifPresent(
-                      msg ->
-                          CompletableFuture.supplyAsync(
-                                  () -> {
-                                    handleMessage(msg);
-                                    return null;
-                                  })
-                              .thenAccept(task -> runningTasks.remove(task)));
-            });
-  }
-
-  @Override
-  public void registerCallbackHandler(String expectedData, Consumer<CallbackQuery> callback) {
-    if (callbackHandlers.stream().anyMatch(s -> s.getIdentifier().equals(expectedData))) {
-      System.err.println("Callback handler already exists!");
-      return;
-    }
-
-    callbackHandlers.add(Handler.of(expectedData, callback));
-  }
-
-  @Override
-  public void registerMessageHandler(Consumer<Message> callback) {
-    registerMessageHandler("*", callback);
-  }
-
-  @Override
-  public void registerMessageHandler(String pattern, Consumer<Message> callback) {
-    if (messageHandlers.stream().anyMatch(s -> s.getIdentifier().equals(pattern))) {
-      System.err.println("Message handler already exists!");
-      return;
-    }
-
-    messageHandlers.add(Handler.of(pattern, callback));
   }
 }

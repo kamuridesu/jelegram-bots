@@ -69,6 +69,7 @@
                 <version>2.23</version>
                 <executions>
                     <execution>
+                        <phase>install</phase>
                         <goals>
                             <goal>format</goal>
                         </goals>

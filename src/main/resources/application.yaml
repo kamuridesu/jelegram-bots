@@ -1,6 +1,4 @@
 spring:
-  profiles:
-    active: default-runner
   application:
     name: telegram
   telegram:
