@@ -1,0 +1,52 @@
+name: Secure Sync GitHub PR to Forgejo
+
+on:
+  pull_request_target:
+    types: [labeled, synchronize]
+
+jobs:
+  sync-to-forgejo:
+    if: contains(github.event.pull_request.labels.*.name, 'sync-to-forgejo')
+    runs-on: ubuntu-latest
+    environment: forgejo-sync
+    steps:
+      - name: Safely Fetch and Push PR Branch
+        env:
+          FORGEJO_EXTERNAL_URL: ${{ secrets.FORGEJO_EXTERNAL_URL }}
+          FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+          FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+        run: |
+          BRANCH_NAME="github-pr-${{ github.event.pull_request.number }}"
+          git clone --bare https://github.com/${{ github.repository }}.git .
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
+          
+          
+          CLEAN_HOST="${FORGEJO_EXTERNAL_URL#*://}"
+          PROTOCOL="${FORGEJO_EXTERNAL_URL%%://*}"
+          
+          git push "$PROTOCOL://$FORGEJO_USER:$FORGEJO_TOKEN@$CLEAN_HOST/kamuridesu/jelegram-bots.git" pr-branch:refs/heads/$BRANCH_NAME -f
+
+      - name: Create PR on Forgejo via API
+        if: github.event.action == 'labeled' && github.event.label.name == 'sync-to-forgejo'
+        env:
+          FORGEJO_EXTERNAL_URL: ${{ secrets.FORGEJO_EXTERNAL_URL }}
+          FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+          GH_PR_TITLE: ${{ github.event.pull_request.title }}
+          GH_PR_BODY: ${{ github.event.pull_request.body }}
+          GH_PR_USER: ${{ github.event.pull_request.user.login }}
+          GH_PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          BRANCH_NAME="github-pr-${{ github.event.pull_request.number }}"
+          PR_BODY="**Original GitHub PR by @$GH_PR_USER:** $GH_PR_URL \n\n$GH_PR_BODY"
+          
+          JSON_PAYLOAD=$(jq -n \
+            --arg title "$GH_PR_TITLE" \
+            --arg body "$PR_BODY" \
+            --arg head "$BRANCH_NAME" \
+            --arg base "main" \
+            '{title: $title, body: $body, head: $head, base: $base}')
+
+          curl -X POST "$FORGEJO_EXTERNAL_URL/api/v1/repos/kamuridesu/jelegram-bots/pulls" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: token $FORGEJO_TOKEN" \
+            -d "$JSON_PAYLOAD"
